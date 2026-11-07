@@ -1,0 +1,266 @@
+<!-- VANE_AI_OVERVIEW_UI -->
+    <section id="vane-ai-overview" class="vane-overview" hidden>
+      <div class="vane-overview-header">
+        <div class="vane-overview-heading">
+          <span class="vane-overview-icon">✦</span>
+          <strong>AI Overview</strong>
+          <span class="vane-overview-powered">Powered by Vane</span>
+        </div>
+        <button type="button" id="vane-ai-toggle" class="vane-overview-toggle"
+                aria-expanded="true">Hide</button>
+      </div>
+
+      <div id="vane-ai-body">
+        <div id="vane-ai-content" class="vane-overview-content">
+          <div class="vane-ai-loading">
+            <span class="vane-ai-spinner"></span>
+            <span>Generating an AI overview...</span>
+          </div>
+        </div>
+        <div id="vane-ai-sources" class="vane-ai-sources"></div>
+        <div id="vane-ai-error" class="vane-ai-error" hidden></div>
+
+        <section id="vane-chat" class="vane-chat" hidden>
+          <div class="vane-chat-heading">
+            <strong>Ask a follow-up question</strong>
+            <button type="button" id="vane-chat-reset" class="vane-chat-reset">
+              Reset conversation
+            </button>
+          </div>
+          <div id="vane-chat-messages" class="vane-chat-messages" aria-live="polite"></div>
+          <form id="vane-chat-form" class="vane-chat-form">
+            <textarea id="vane-chat-input" placeholder="Ask anything about this search..."
+                      rows="2" maxlength="500" required></textarea>
+            <button type="submit" id="vane-chat-send">Send</button>
+          </form>
+          <div id="vane-chat-status" class="vane-chat-status" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <style>
+      .vane-overview {
+        margin: 1.5rem 0 2rem;
+        padding: 1.25rem 1.4rem;
+        border: 1px solid var(--color-toolkit-border, #8885);
+        border-radius: 12px;
+        background: var(--color-toolkit-bg, transparent);
+        max-width: 900px;
+      }
+      .vane-overview-header, .vane-overview-heading, .vane-chat-heading {
+        display: flex; align-items: center; gap: .65rem;
+      }
+      .vane-overview-header, .vane-chat-heading {
+        justify-content: space-between;
+      }
+      .vane-overview-header { margin-bottom: 1rem; }
+      .vane-overview-heading strong { font-size: 1.2rem; }
+      .vane-overview-icon { font-size: 1.5rem; color: var(--color-primary, #4285f4); }
+      .vane-overview-powered { font-size: .75rem; opacity: .65; }
+      .vane-overview-toggle, .vane-chat-reset {
+        background: transparent; border: 1px solid var(--color-toolkit-border, #8885);
+        border-radius: 6px; padding: .3rem .65rem; cursor: pointer; color: inherit;
+      }
+      .vane-overview-content { line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .vane-ai-loading { display: flex; align-items: center; gap: .8rem; opacity: .7; }
+      .vane-ai-spinner {
+        width: 17px; height: 17px; border: 2px solid currentColor;
+        border-right-color: transparent; border-radius: 50%;
+        animation: vane-spin .8s linear infinite;
+      }
+      @keyframes vane-spin { to { transform: rotate(360deg); } }
+      .vane-ai-sources { display: flex; flex-direction: column; gap: .6rem; margin-top: 1rem; }
+      .vane-ai-sources[hidden], #vane-ai-body[hidden], #vane-chat[hidden] {
+        display: none !important;
+      }
+      .vane-ai-source {
+        padding: .65rem .8rem; border-radius: 7px;
+        background: var(--color-toolkit-bg, rgba(128,128,128,.08)); overflow-wrap: anywhere;
+      }
+      .vane-ai-source a { font-weight: 600; text-decoration: none; }
+      .vane-ai-source a:hover { text-decoration: underline; }
+      .vane-ai-source small { display: block; margin-top: .25rem; opacity: .7; line-height: 1.4; }
+      .vane-ai-error { margin-top: .8rem; color: var(--color-error, #d9534f); }
+      .vane-chat { border-top: 1px solid var(--color-toolkit-border, #8885); margin-top: 1.4rem; padding-top: 1.2rem; }
+      .vane-chat-heading { margin-bottom: .8rem; }
+      .vane-chat-messages { display: flex; flex-direction: column; gap: .8rem; max-height: 450px; overflow-y: auto; margin-bottom: 1rem; }
+      .vane-chat-message { padding: .8rem 1rem; border-radius: 9px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .vane-chat-user { align-self: flex-end; max-width: 85%; background: var(--color-toolkit-bg, rgba(128,128,128,.12)); }
+      .vane-chat-assistant { align-self: stretch; border: 1px solid var(--color-toolkit-border, #8885); }
+      .vane-chat-role { display: block; font-size: .75rem; font-weight: 700; opacity: .65; margin-bottom: .35rem; }
+      .vane-chat-message-sources { margin-top: .8rem; padding-top: .7rem; border-top: 1px solid var(--color-toolkit-border, #8885); }
+      .vane-chat-message-sources > strong { display: block; margin-bottom: .5rem; }
+      .vane-chat-form { display: flex; gap: .6rem; align-items: stretch; }
+      .vane-chat-form textarea {
+        flex: 1; min-width: 0; resize: vertical; padding: .7rem .8rem;
+        border: 1px solid var(--color-toolkit-border, #8885); border-radius: 8px;
+        background: var(--color-toolkit-bg, transparent); color: inherit; font: inherit;
+      }
+      .vane-chat-form button {
+        padding: .6rem 1.1rem; border: 0; border-radius: 8px;
+        background: var(--color-primary, #4285f4); color: white; cursor: pointer;
+      }
+      .vane-chat-form button:disabled { opacity: .5; cursor: wait; }
+      .vane-chat-status { min-height: 1.4em; margin-top: .4rem; font-size: .8rem; opacity: .7; }
+      @media (max-width: 600px) {
+        .vane-overview { padding: 1rem; margin: 1rem 0; }
+        .vane-overview-powered { display: none; }
+        .vane-chat-form { flex-direction: column; }
+        .vane-chat-form button { align-self: flex-end; }
+      }
+    </style>
+
+    <script>
+    (() => {
+      const panel = document.getElementById("vane-ai-overview");
+      if (!panel) return;
+      const query = new URLSearchParams(window.location.search).get("q");
+      if (!query || !query.trim()) return;
+      panel.hidden = false;
+
+      const body = document.getElementById("vane-ai-body");
+      const content = document.getElementById("vane-ai-content");
+      const sources = document.getElementById("vane-ai-sources");
+      const error = document.getElementById("vane-ai-error");
+      const toggle = document.getElementById("vane-ai-toggle");
+      const chat = document.getElementById("vane-chat");
+      const messages = document.getElementById("vane-chat-messages");
+      const form = document.getElementById("vane-chat-form");
+      const input = document.getElementById("vane-chat-input");
+      const send = document.getElementById("vane-chat-send");
+      const reset = document.getElementById("vane-chat-reset");
+      const status = document.getElementById("vane-chat-status");
+
+      let history = [];
+      let initialHistory = [];
+      let busy = false;
+
+      toggle.addEventListener("click", () => {
+        const expanded = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", String(!expanded));
+        body.hidden = expanded;
+        toggle.textContent = expanded ? "Show" : "Hide";
+      });
+
+      function appendSources(target, list, headingText) {
+        if (!Array.isArray(list)) return;
+        const valid = list.filter(s => s && typeof s.url === "string" && /^https?:\/\//i.test(s.url));
+        if (!valid.length) return;
+        const heading = document.createElement("strong");
+        heading.textContent = headingText;
+        target.appendChild(heading);
+        valid.forEach((source, index) => {
+          const item = document.createElement("div");
+          item.className = "vane-ai-source";
+          const link = document.createElement("a");
+          link.href = source.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "[" + (index + 1) + "] " + (source.title || source.url);
+          item.appendChild(link);
+          if (source.snippet) {
+            const snippet = document.createElement("small");
+            snippet.textContent = source.snippet;
+            item.appendChild(snippet);
+          }
+          target.appendChild(item);
+        });
+      }
+
+      function appendMessage(role, message, messageSources) {
+        const item = document.createElement("div");
+        item.className = "vane-chat-message " +
+          (role === "human" ? "vane-chat-user" : "vane-chat-assistant");
+        const label = document.createElement("span");
+        label.className = "vane-chat-role";
+        label.textContent = role === "human" ? "You" : "AI";
+        item.appendChild(label);
+        const text = document.createElement("div");
+        text.textContent = message;
+        item.appendChild(text);
+        if (role === "assistant" && messageSources && messageSources.length) {
+          const sourceBox = document.createElement("div");
+          sourceBox.className = "vane-chat-message-sources";
+          appendSources(sourceBox, messageSources, "Sources");
+          item.appendChild(sourceBox);
+        }
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      async function loadOverview() {
+        try {
+          const response = await fetch("/ai-overview?q=" + encodeURIComponent(query), {
+            headers: { "Accept": "application/json" }
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "AI Overview request failed.");
+          if (!data.message) throw new Error("The AI service returned no answer.");
+          content.textContent = data.message;
+          appendSources(sources, data.sources, "Sources");
+          initialHistory = [["human", query], ["assistant", data.message]];
+          history = initialHistory.slice();
+          chat.hidden = false;
+        } catch (err) {
+          content.textContent = "";
+          error.textContent = "AI Overview is temporarily unavailable: " +
+            (err.message || "Unknown error");
+          error.hidden = false;
+        }
+      }
+
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        const question = input.value.trim();
+        if (!question || busy) return;
+        busy = true;
+        send.disabled = true;
+        input.disabled = true;
+        status.textContent = "Thinking...";
+        appendMessage("human", question);
+        input.value = "";
+        try {
+          const response = await fetch("/ai-overview-followup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify({ q: question, history })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Follow-up request failed.");
+          if (!data.message) throw new Error("Vane returned an empty answer.");
+          appendMessage("assistant", data.message, data.sources);
+          history.push(["human", question], ["assistant", data.message]);
+          if (history.length > 20) history = history.slice(-20);
+          status.textContent = "";
+        } catch (err) {
+          appendMessage("assistant", "Sorry, the follow-up failed: " +
+            (err.message || "Unknown error"));
+          status.textContent = "Please try again.";
+        } finally {
+          busy = false;
+          send.disabled = false;
+          input.disabled = false;
+          input.focus();
+        }
+      });
+
+      input.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          form.requestSubmit();
+        }
+      });
+
+      reset.addEventListener("click", () => {
+        if (busy) return;
+        history = initialHistory.slice();
+        messages.replaceChildren();
+        status.textContent = "Conversation reset.";
+        input.value = "";
+        input.focus();
+      });
+
+      loadOverview();
+    })();
+    </script>
+    <!-- END VANE_AI_OVERVIEW_UI -->
